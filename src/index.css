@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom Vintage Theater Stripes */
+.bg-curtain-stripes {
+  background: repeating-linear-gradient(
+    90deg,
+    #5f161c 0px,
+    #5f161c 38px,
+    #7a1d24 38px,
+    #7a1d24 76px
+  );
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.7);
+}
+
+/* Vintage marquee glow text */
+.marquee-glow {
+  text-shadow: 
+    0 0 10px rgba(255, 230, 160, 0.8),
+    0 0 20px rgba(255, 200, 100, 0.5),
+    0 0 40px rgba(230, 160, 50, 0.3);
+}
+
+/* Scrolling theatre marquee: two copies of the text, shift by half = seamless loop */
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-scroll {
+  animation: marqueeScroll 28s linear infinite;
+}
+
+/* Chasing marquee bulbs: a row of dots whose lit pattern slides along */
+@keyframes bulbChase {
+  to { background-position: 24px 0, 24px 0; }
+}
+.marquee-bulbs {
+  height: 8px;
+  background-image:
+    radial-gradient(circle, #fff6d6 0 2.5px, rgba(255, 210, 120, 0.55) 3.5px, transparent 4.5px),
+    radial-gradient(circle, rgba(255, 210, 120, 0.25) 0 2.5px, transparent 3.5px);
+  background-size: 24px 8px, 12px 8px;
+  background-position: 0 0, 6px 0;
+  animation: bulbChase 0.6s steps(2) infinite;
+  filter: drop-shadow(0 0 3px rgba(255, 200, 100, 0.8));
+}
+
+/* In @layer components so Tailwind [animation-delay:..] utilities still win */
+@layer components {
+/* ---- Cinema: opening credits, projector, grain ---- */
+@keyframes creditInOut {
+  0% { opacity: 0; transform: scale(0.96); letter-spacing: 0.02em; }
+  18%, 78% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.02); }
+}
+.cinema-credit { opacity: 0; animation: creditInOut 4s ease-in-out both; }
+.cinema-credit-long { animation-duration: 6s; }
+
+@keyframes creditStay { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.cinema-stay { opacity: 0; animation: creditStay 1.2s ease-out both; }
+
+/* Dark during the credits, then lifts to let the film play */
+@keyframes introDim { 0%, 80% { opacity: 0.6; } 100% { opacity: 0; } }
+.cinema-intro-dim { animation: introDim 13s ease-in both; }
+
+@keyframes projectorFlicker {
+  0%, 100% { opacity: 0.85; } 7% { opacity: 0.7; } 9% { opacity: 0.95; } 40% { opacity: 0.8; } 63% { opacity: 0.92; } 65% { opacity: 0.74; }
+}
+.projector-beam { animation: projectorFlicker 3.2s steps(1) infinite; filter: blur(10px); }
+
+@keyframes dustFloat {
+  0% { transform: translate(0, 0); opacity: 0; }
+  20%, 80% { opacity: 0.8; }
+  100% { transform: translate(24px, -60px); opacity: 0; }
+}
+.projector-dust { animation: dustFloat 8s linear infinite; }
+
+@keyframes grainShift {
+  0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-3%, 2%); } 50% { transform: translate(2%, -3%); } 75% { transform: translate(-2%, -1%); }
+}
+.film-grain-anim {
+  inset: -10%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grainShift 0.5s steps(1) infinite;
+}
+
+}
+
+/* Flip Clock Card Styling */
+.flip-card-top {
+  clip-path: inset(0 0 50% 0);
+}
+.flip-card-bottom {
+  clip-path: inset(50% 0 0 0);
+}
+
+/* Subtle Film Grain */
+.film-grain {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1ede4;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4af37;
+  border-radius: 9999px;
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Luxury Gold Foil Shimmer */
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.gold-shimmer-text {
+  background: linear-gradient(
+    115deg,
+    #b8860b 0%,
+    #d4af37 25%,
+    #fff8dc 50%,
+    #d4af37 75%,
+    #996515 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: goldShimmer 4s linear infinite;
+}
+
+.gold-aura-glow {
+  text-shadow: 0 0 25px rgba(212, 175, 55, 0.4), 0 0 50px rgba(212, 175, 55, 0.2);
+}
+
+/* Float subtle animation */
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(1deg);
+  }
+}
+
+.animate-float-gentle {
+  animation: floatGentle 5s ease-in-out infinite;
+}
