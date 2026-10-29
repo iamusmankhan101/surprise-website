@@ -1,15 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useConfig } from '../config/ConfigContext';
 import confetti from 'canvas-confetti';
-import { Volume2, VolumeX, Music, Sparkles, Sliders, Share2, Check } from 'lucide-react';
+import { Volume2, VolumeX, Music, Sparkles, Sliders, Share2 } from 'lucide-react';
 import { clientPresets } from '../config/clientPresets';
 import { youtubeId, ytEmbed, ytCommand } from '../youtube';
 
 export default function Navbar() {
-  const { config, isAdmin, isAudioPlaying, setIsAudioPlaying, setIsStudioOpen, loadPreset, generateShareableLink } = useConfig();
+  const { config, isAdmin, isAudioPlaying, setIsAudioPlaying, setIsStudioOpen, loadPreset } = useConfig();
   const audioRef = useRef(null);
   const ytRef = useRef(null);
-  const [copied, setCopied] = useState(false);
   const songUrl = config.music?.audioUrl || "https://assets.mixkit.co/music/preview/mixkit-romantic-moment-1144.mp3";
   const ytId = youtubeId(songUrl);
   const [ytMounted, setYtMounted] = useState(false); // YouTube player loads on the first play tap
@@ -49,14 +48,6 @@ export default function Navbar() {
       spread: 70,
       origin: { y: 0.2 },
       colors: ['#e0a955', '#e11d48', '#f43f5e', '#fbbf24', '#ffffff']
-    });
-  };
-
-  const handleCopyLink = () => {
-    const link = generateShareableLink();
-    navigator.clipboard.writeText(link).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
     });
   };
 
@@ -150,21 +141,12 @@ export default function Navbar() {
             {/* Owner-only: share link + studio */}
             {isAdmin && (<>
             <button
-              onClick={handleCopyLink}
-              title="Copy shareable link for this client"
+              onClick={() => setIsStudioOpen('sell')}
+              title="Create a short shareable link for this client"
               className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-stone-200/80 shadow-sm text-xs font-semibold text-stone-700 hover:bg-stone-50 transition-all"
             >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-700 font-bold">Link Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-3.5 h-3.5 text-stone-500" />
-                  <span className="hidden sm:inline">Share Link</span>
-                </>
-              )}
+              <Share2 className="w-3.5 h-3.5 text-stone-500" />
+              <span className="hidden sm:inline">Share Link</span>
             </button>
 
             {/* Seller Customizer Button */}

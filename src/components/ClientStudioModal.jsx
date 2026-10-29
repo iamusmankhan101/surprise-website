@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { useConfig } from '../config/ConfigContext';
+import React, { useState, useEffect } from 'react';
+import { useConfig, CURRENT_SLUG } from '../config/ConfigContext';
+
+// "Sana Khan!" -> "sana-khan"
+const toSlug = (text) => text.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 import { 
   X, Save, Download, Upload, Share2, Sparkles, RefreshCw, 
   User, Image, MessageSquare, Clock, Music, Check, Copy, ExternalLink 
@@ -12,15 +15,23 @@ export default function ClientStudioModal() {
     resetToDefault, 
     exportConfigJson, 
     importConfigJson, 
-    generateShareableLink, 
-    isStudioOpen, 
-    setIsStudioOpen 
+    saveShortLink,
+    isStudioOpen,
+    setIsStudioOpen
   } = useConfig();
 
   const [activeTab, setActiveTab] = useState('general');
   const [formData, setFormData] = useState(config);
   const [copiedLink, setCopiedLink] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  // Editing an existing short link (/sana?admin) re-saves under the same name by default
+  const [slug, setSlug] = useState(() => CURRENT_SLUG || toSlug(config.hero?.recipientName || ''));
+  const [link, setLink] = useState({ status: 'idle' }); // idle | saving | done (url) | taken | error (message)
+
+  // setIsStudioOpen('sell') opens straight on a tab
+  useEffect(() => {
+    if (typeof isStudioOpen === 'string') setActiveTab(isStudioOpen);
+  }, [isStudioOpen]);
 
   if (!isStudioOpen) return null;
 
@@ -49,11 +60,22 @@ export default function ClientStudioModal() {
   };
 
   const handleCopyLink = () => {
-    const link = generateShareableLink();
-    navigator.clipboard.writeText(link).then(() => {
+    navigator.clipboard.writeText(link.url).then(() => {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
     });
+  };
+
+  // Saves the current edits (also applying them here) under the chosen short name
+  const handleCreateLink = async (overwrite = false) => {
+    setLink({ status: 'saving' });
+    try {
+      const url = await saveShortLink(slug, formData, overwrite);
+      updateConfig(formData);
+      setLink({ status: 'done', url });
+    } catch (err) {
+      setLink(err.taken ? { status: 'taken' } : { status: 'error', message: err.message });
+    }
   };
 
   const handleFileUpload = (e) => {
@@ -438,31 +460,64 @@ export default function ClientStudioModal() {
               <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-5 rounded-xl border border-amber-500/30">
                 <h3 className="font-bold text-amber-300 flex items-center gap-2 text-sm sm:text-base">
                   <Share2 className="w-4 h-4 text-amber-400" />
-                  Method 1: Instant Unique Client Link (Zero Code / Zero Re-deploy)
+                  Method 1: Short Client Link (Zero Code / Zero Re-deploy)
                 </h3>
                 <p className="text-xs text-zinc-300 mt-1.5 leading-relaxed">
-                  Every customization you made is encoded into this self-contained link. You can send this exact link directly to your customer! When they open it, their custom photos, name, and countdown will load immediately.
+                  Pick a name and your current edits are saved under it. Send the short link to your customer: their custom photos, name, and countdown load straight away. Re-save under the same name any time to update their site.
                 </p>
-                
-                <div className="mt-4 flex flex-col sm:flex-row gap-2">
+
+                <label className="mt-4 flex items-stretch rounded-lg border border-zinc-700 bg-zinc-950 focus-within:border-amber-500 overflow-hidden text-xs">
+                  <span className="px-3 py-2.5 text-zinc-500 bg-zinc-900 border-r border-zinc-700 truncate shrink-0 max-w-[55%]">{window.location.host}/</span>
+                  <input
+                    value={slug}
+                    onChange={(e) => { setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').slice(0, 40)); setLink({ status: 'idle' }); }}
+                    placeholder="sana"
+                    aria-label="Short link name"
+                    className="flex-1 min-w-0 bg-transparent px-3 py-2.5 text-zinc-100 outline-none"
+                  />
+                </label>
+
+                <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={() => handleCreateLink(false)}
+                    disabled={slug.length < 2 || link.status === 'saving'}
+                    className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:pointer-events-none text-zinc-950 font-bold px-4 py-2.5 rounded-lg text-xs transition-all shadow-md active:scale-95"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span>{link.status === 'saving' ? 'Saving…' : 'Create Short Link'}</span>
+                  </button>
+
+                  {link.status === 'done' && (<>
                   <button
                     onClick={handleCopyLink}
-                    className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold px-4 py-2.5 rounded-lg text-xs transition-all shadow-md active:scale-95"
+                    className="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-semibold px-4 py-2.5 rounded-lg text-xs transition-all border border-zinc-700"
                   >
-                    {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    <span>{copiedLink ? "Client Link Copied!" : "Copy Shareable Client Link"}</span>
+                    {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedLink ? 'Copied!' : 'Copy Link'}</span>
                   </button>
 
                   <button
-                    onClick={() => {
-                      const link = generateShareableLink();
-                      window.open(link, '_blank');
-                    }}
+                    onClick={() => window.open(link.url, '_blank')}
                     className="flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-semibold px-4 py-2.5 rounded-lg text-xs transition-all border border-zinc-700"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>Open in New Tab</span>
                   </button>
+                  </>)}
+                </div>
+
+                <div aria-live="polite" className="mt-3 text-xs">
+                  {link.status === 'done' && <p className="text-emerald-400 break-all">Saved: {link.url}</p>}
+                  {link.status === 'error' && <p className="text-rose-400">{link.message}</p>}
+                  {link.status === 'taken' && (
+                    <p className="text-amber-300">
+                      <strong>{slug}</strong> is already in use.{' '}
+                      <button onClick={() => handleCreateLink(true)} className="underline font-semibold hover:text-amber-200">
+                        Replace it with this site
+                      </button>{' '}
+                      or pick another name.
+                    </p>
+                  )}
                 </div>
               </div>
 

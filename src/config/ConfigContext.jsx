@@ -8,7 +8,14 @@ const ConfigContext = createContext(null);
 // Shared gift links never carry it, so recipients always get the clean view.
 const IS_ADMIN = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('admin');
 
+// Short share link: /sana loads the config saved under "sana" by /api/link (same rule as api/link.js)
+export const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,39}$/;
+const pathSlug = typeof window !== 'undefined' ? window.location.pathname.slice(1) : '';
+export const CURRENT_SLUG = SLUG_RE.test(pathSlug) ? pathSlug : '';
+
 export const ConfigProvider = ({ children }) => {
+  const [isLoadingLink, setIsLoadingLink] = useState(Boolean(CURRENT_SLUG));
+
   const [config, setConfig] = useState(() => {
     // Check if URL has a client preset or encoded config
     try {
@@ -36,6 +43,15 @@ export const ConfigProvider = ({ children }) => {
 
   const [isStudioOpen, setIsStudioOpen] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+
+  useEffect(() => {
+    if (!CURRENT_SLUG) return;
+    fetch(`/api/link?slug=${CURRENT_SLUG}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+      .then(setConfig)
+      .catch((e) => console.warn(`Could not load link "${CURRENT_SLUG}", showing the saved/default site`, e))
+      .finally(() => setIsLoadingLink(false));
+  }, []);
 
   // Sync to localStorage
   useEffect(() => {
@@ -82,15 +98,20 @@ export const ConfigProvider = ({ children }) => {
     }
   };
 
-  const generateShareableLink = () => {
-    try {
-      const jsonStr = JSON.stringify(config);
-      const encoded = btoa(encodeURIComponent(jsonStr));
-      return `${window.location.origin}${window.location.pathname}#data=${encoded}`;
-    } catch (err) {
-      return window.location.href;
-    }
+  // Saves siteConfig under /<slug> and returns the short URL. Throws { taken: true } if the name is used and !overwrite.
+  const saveShortLink = async (slug, siteConfig, overwrite = false) => {
+    const res = await fetch('/api/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, config: siteConfig, overwrite }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 409) throw Object.assign(new Error(body.error), { taken: true });
+    if (!res.ok) throw new Error(body.error || (res.status === 404 ? 'Short links only work on the deployed site' : `Could not save link (HTTP ${res.status})`));
+    return `${window.location.origin}/${slug}`;
   };
+
+  if (isLoadingLink) return null;
 
   return (
     <ConfigContext.Provider value={{
@@ -101,7 +122,7 @@ export const ConfigProvider = ({ children }) => {
       resetToDefault,
       exportConfigJson,
       importConfigJson,
-      generateShareableLink,
+      saveShortLink,
       isStudioOpen,
       setIsStudioOpen,
       isAudioPlaying,
