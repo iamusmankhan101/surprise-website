@@ -13,7 +13,6 @@ export default function RibbonSpiralHero() {
   const offsetRef = useRef(0);
   const speedRef = useRef(0.55); // Smooth cinematic ribbon glide
   const cardRefs = useRef([]);
-  const posRef = useRef([]); // latest card centers in %, for confetti origin
   const hoveredRef = useRef(null);
 
   const ribbonPhotos = config.hero?.ribbonPhotos || [];
@@ -99,7 +98,6 @@ export default function RibbonSpiralHero() {
         // Convert 1600x900 coordinate system to percentage
         const left = (p1.x / 1600) * 100;
         const top = (p1.y / 900) * 100;
-        posRef.current[i] = { left, top };
 
         // Write straight to the DOM: no React re-render per frame
         el.style.display = left < -10 || left > 110 ? 'none' : '';
@@ -164,9 +162,10 @@ export default function RibbonSpiralHero() {
         </div>
       </div>
 
-      {/* FULL-WIDTH RIBBON CANVAS (Covers entire screen to form proper ribbon shape 🎗️) */}
-      <div 
-        className="absolute inset-0 pointer-events-auto overflow-hidden"
+      {/* FULL-WIDTH RIBBON CANVAS (Covers entire screen to form proper ribbon shape 🎗️)
+          Phones: sits below the text at the path's true 16:9 shape, 200vw wide so the loop is centred */}
+      <div
+        className="relative max-md:order-1 max-md:self-center max-md:w-[200vw] max-md:aspect-video max-md:-my-12 md:absolute md:inset-0 pointer-events-auto overflow-hidden"
         onMouseEnter={() => { speedRef.current = 0.25; }} // Gently slow on hover
         onMouseLeave={() => { speedRef.current = 0.55; }} // Resume normal speed
       >
@@ -185,10 +184,10 @@ export default function RibbonSpiralHero() {
               ref={(el) => { cardRefs.current[idx] = el; }}
               onMouseEnter={() => { hoveredRef.current = idx; }}
               onMouseLeave={() => { hoveredRef.current = null; }}
-              onClick={() => {
-                const pos = posRef.current[idx];
+              onClick={(e) => {
+                const r = e.currentTarget.getBoundingClientRect();
                 setActivePhoto(photo);
-                if (pos) confetti({ particleCount: 30, origin: { x: pos.left / 100, y: pos.top / 100 } });
+                confetti({ particleCount: 30, origin: { x: (r.left + r.width / 2) / innerWidth, y: (r.top + r.height / 2) / innerHeight } });
               }}
               style={{ display: 'none' }}
               className="absolute cursor-pointer group will-change-transform"
@@ -335,7 +334,7 @@ export default function RibbonSpiralHero() {
       </div>
 
       {/* Bottom Bar: Heart button & "MADE FOR YOU" matching Screenshot 1 */}
-      <div className="relative z-30 flex items-center justify-between pt-6 border-t border-stone-200/60 mt-4 pointer-events-auto">
+      <div className="relative z-30 max-md:order-2 flex items-center justify-between pt-6 border-t border-stone-200/60 mt-4 pointer-events-auto">
         {/* Heart Interactive Button */}
         <button
           onClick={handleHeartClick}
