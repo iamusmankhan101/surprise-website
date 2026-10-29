@@ -2,8 +2,10 @@
 // Storage: Upstash Redis (Vercel Marketplace), spoken to over its REST API, so no extra dependency.
 import { isAdminRequest, loginRequired } from '../middleware.js';
 
-const REDIS_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const REDIS_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+// Vercel names these KV_REST_API_* (or UPSTASH_REDIS_REST_*), optionally behind a custom prefix like STORAGE_
+const env = (suffix) => process.env[Object.keys(process.env).find((key) => key.endsWith(suffix))];
+const REDIS_URL = env('KV_REST_API_URL') || env('UPSTASH_REDIS_REST_URL');
+const REDIS_TOKEN = env('KV_REST_API_TOKEN') || env('UPSTASH_REDIS_REST_TOKEN');
 
 // Keep in sync with SLUG_RE in src/config/ConfigContext.jsx and the rewrite in vercel.json
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,39}$/;
