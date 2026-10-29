@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useConfig } from '../config/ConfigContext';
 import confetti from 'canvas-confetti';
-import { Volume2, VolumeX, Music, Sparkles, Sliders, Share2 } from 'lucide-react';
+import { Volume2, VolumeX, Music, Sparkles, Sliders, Share2, LogOut } from 'lucide-react';
 import { clientPresets } from '../config/clientPresets';
 import { youtubeId, ytEmbed, ytCommand } from '../youtube';
 
@@ -158,6 +158,16 @@ export default function Navbar() {
               <Sliders className="w-3.5 h-3.5 text-amber-400" />
               <span>Customize Site</span>
             </button>
+
+            {/* Clears the admin session and returns to the public view of this page */}
+            <a
+              href={`/api/logout?next=${encodeURIComponent(window.location.pathname)}`}
+              title="Log out of admin"
+              className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-stone-200/80 shadow-sm text-xs font-semibold text-stone-700 hover:bg-rose-50 hover:text-rose-600 transition-all"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Log out</span>
+            </a>
             </>)}
 
           </div>

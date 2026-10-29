@@ -1,6 +1,6 @@
 // Short share links: /<slug> loads a site config saved here.
 // Storage: Upstash Redis (Vercel Marketplace), spoken to over its REST API, so no extra dependency.
-import { isAdminRequest, loginRequired } from '../middleware.js';
+import { isAdminRequest } from '../middleware.js';
 
 // Vercel names these KV_REST_API_* (or UPSTASH_REDIS_REST_*), optionally behind a custom prefix like STORAGE_
 const env = (suffix) => process.env[Object.keys(process.env).find((key) => key.endsWith(suffix))];
@@ -35,7 +35,9 @@ export async function GET(request) {
 
 // Body: { slug, config, overwrite? }. Without overwrite an existing slug answers 409 instead of being replaced.
 export async function POST(request) {
-  if (!isAdminRequest(request)) return loginRequired();
+  if (!(await isAdminRequest(request))) {
+    return Response.json({ error: 'Admin login expired, reload the page and log in again' }, { status: 401 });
+  }
   if (!REDIS_URL) return notSetUp();
 
   const { slug, config, overwrite } = await request.json().catch(() => ({}));
