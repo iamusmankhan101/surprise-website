@@ -14,6 +14,7 @@ export default function RibbonSpiralHero() {
   const speedRef = useRef(0.55); // Smooth cinematic ribbon glide
   const cardRefs = useRef([]);
   const hoveredRef = useRef(null);
+  const introStartRef = useRef(null);
 
   const ribbonPhotos = config.hero?.ribbonPhotos || [];
 
@@ -58,13 +59,19 @@ export default function RibbonSpiralHero() {
 
     const spacing = totalLength / itemsCount;
     let lastTime = performance.now();
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const animate = (time) => {
       const dt = (time - lastTime) / 16.67; // Normalize to 60fps
       lastTime = time;
 
+      // Opening shot: the ribbon whips in fast and eases down to its cruising glide over ~2.8s
+      introStartRef.current ??= time;
+      const sinceIntro = reduceMotion ? Infinity : time - introStartRef.current;
+      const boost = 14 * Math.max(0, 1 - sinceIntro / 2800) ** 3;
+
       if (!isPaused) {
-        offsetRef.current = (offsetRef.current + speedRef.current * dt) % totalLength;
+        offsetRef.current = (offsetRef.current + (speedRef.current + boost) * dt) % totalLength;
       }
 
       for (let i = 0; i < itemsCount; i++) {
@@ -105,6 +112,7 @@ export default function RibbonSpiralHero() {
         el.style.top = `${top}%`;
         el.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
         el.style.zIndex = hoveredRef.current === i ? 60 : zIndex;
+        el.style.opacity = Math.min(1, Math.max(0, (sinceIntro - 500 - i * 40) / 500)); // cards fade in one after another
       }
 
       animFrameRef.current = requestAnimationFrame(animate);
@@ -131,6 +139,12 @@ export default function RibbonSpiralHero() {
     <section 
       id="hero" 
       className="relative min-h-screen w-full bg-[#f4f2ec] overflow-hidden flex flex-col justify-between pt-16 pb-8 px-6 md:px-14 select-none"
+      // Mouse position as -1..1 in --mx/--my, for the text/ribbon parallax
+      onMouseMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty('--mx', (((e.clientX - r.left) / r.width) * 2 - 1).toFixed(3));
+        e.currentTarget.style.setProperty('--my', (((e.clientY - r.top) / r.height) * 2 - 1).toFixed(3));
+      }}
     >
       {/* Hidden SVG curve measurement element */}
       <svg className="absolute w-0 h-0 pointer-events-none opacity-0" viewBox="0 0 1600 900">
@@ -139,6 +153,17 @@ export default function RibbonSpiralHero() {
 
       {/* Subtle luxury paper texture */}
       <div className="absolute inset-0 bg-[radial-gradient(#e5dfd2_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
+
+      {/* Drifting warm light leak, like sun through a projector gate */}
+      <div className="hero-light-leak absolute -top-1/4 -left-1/4 w-[80%] h-[80%] rounded-full bg-[radial-gradient(circle,rgba(255,186,102,0.4),transparent_65%)] blur-3xl pointer-events-none" />
+
+      {/* Film grain + vignette over everything */}
+      <div className="absolute film-grain-anim opacity-[0.06] mix-blend-multiply pointer-events-none z-[45]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(41,29,12,0.16))] pointer-events-none z-[45]" />
+
+      {/* Opening shutter: screen starts black and opens from the middle */}
+      <div className="hero-shutter absolute inset-x-0 top-0 h-1/2 bg-[#0c0a09] origin-top pointer-events-none z-[70]" />
+      <div className="hero-shutter absolute inset-x-0 bottom-0 h-1/2 bg-[#0c0a09] origin-bottom pointer-events-none z-[70]" />
 
       {/* Top Left: Date Badge matching Screenshot 1 */}
       <div className="relative z-30 pt-4 flex items-center justify-between">
@@ -165,7 +190,7 @@ export default function RibbonSpiralHero() {
       {/* FULL-WIDTH RIBBON CANVAS (Covers entire screen to form proper ribbon shape 🎗️)
           Phones: sits below the text at the path's true 16:9 shape, 200vw wide so the loop is centred */}
       <div
-        className="relative max-md:order-1 max-md:self-center max-md:w-[200vw] max-md:aspect-video max-md:-my-12 md:absolute md:inset-0 pointer-events-auto overflow-hidden"
+        className="relative max-md:order-1 max-md:self-center max-md:w-[200vw] max-md:aspect-video max-md:-my-12 md:absolute md:inset-0 pointer-events-auto overflow-hidden [translate:calc(var(--mx,0)*-14px)_calc(var(--my,0)*-10px)] transition-[translate] duration-700 ease-out motion-reduce:[translate:none]"
         onMouseEnter={() => { speedRef.current = 0.25; }} // Gently slow on hover
         onMouseLeave={() => { speedRef.current = 0.55; }} // Resume normal speed
       >
@@ -207,7 +232,7 @@ export default function RibbonSpiralHero() {
       </div>
 
       {/* Left Hero Typography Content Area (Floating over the ribbon with high z-index) */}
-      <div className="relative z-20 max-w-xl my-auto pointer-events-none pt-4 pb-16 [&>*]:animate-fade-up motion-reduce:[&>*]:animate-none [&>*:nth-child(2)]:[animation-delay:120ms] [&>*:nth-child(3)]:[animation-delay:260ms] [&>*:nth-child(4)]:[animation-delay:380ms] [&>*:nth-child(5)]:[animation-delay:500ms]">
+      <div className="hero-scroll-out relative z-20 max-w-xl my-auto pointer-events-none pt-4 pb-16 [translate:calc(var(--mx,0)*8px)_calc(var(--my,0)*6px)] transition-[translate] duration-700 ease-out motion-reduce:[translate:none] [&>*]:animate-fade-up motion-reduce:[&>*]:animate-none [&>*:nth-child(2)]:[animation-delay:900ms] [&>*:nth-child(3)]:[animation-delay:1200ms] [&>*:nth-child(4)]:[animation-delay:1400ms] [&>*:nth-child(5)]:[animation-delay:1600ms]">
         
         {/* Luxury Typography Eyebrow with Font Switcher (owner only) */}
         {isAdmin && (
@@ -239,7 +264,7 @@ export default function RibbonSpiralHero() {
         {/* Hero Title Matching Screenshot 1 with True Luxury Typography */}
         {config.hero?.fontTheme === 'vogue-editorial' ? (
           /* Style 1: Vogue Haute Couture (Italiana & Bodoni Moda) */
-          <h1 className="tracking-tight leading-[0.92]">
+          <h1 className="hero-title tracking-tight leading-[0.92]">
             <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-luxury font-bold text-stone-900 tracking-[0.06em] uppercase">
               {config.hero?.titlePrefix || "Happy"}
             </span>
@@ -257,7 +282,7 @@ export default function RibbonSpiralHero() {
           </h1>
         ) : (config.hero?.fontTheme || 'royal-garamond') === 'royal-garamond' ? (
           /* Style 2: Royal Palace (Cormorant Garamond & Playfair) */
-          <h1 className="tracking-tight leading-[0.95]">
+          <h1 className="hero-title tracking-tight leading-[0.95]">
             <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[78px] font-royal font-light text-stone-900 tracking-wide uppercase">
               {config.hero?.titlePrefix || "Happy"}
             </span>
@@ -275,7 +300,7 @@ export default function RibbonSpiralHero() {
           </h1>
         ) : config.hero?.fontTheme === 'paris-romance' ? (
           /* Style 3: Paris Romance (Cinzel & Alex Brush Script) */
-          <h1 className="tracking-tight leading-[1]">
+          <h1 className="hero-title tracking-tight leading-[1]">
             <span className="block text-4xl sm:text-5xl md:text-6xl font-display font-bold text-stone-900 tracking-[0.12em] uppercase">
               {config.hero?.titlePrefix || "Happy"}
             </span>
@@ -293,7 +318,7 @@ export default function RibbonSpiralHero() {
           </h1>
         ) : (
           /* Default: Couture Sculpted Syne (Exact match to Screenshot 1!) */
-          <h1 className="tracking-tight leading-[0.94]">
+          <h1 className="hero-title tracking-tight leading-[0.94]">
             <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[80px] font-syne font-extrabold text-stone-950 tracking-[-0.035em]">
               {config.hero?.titlePrefix || "Happy"}
             </span>

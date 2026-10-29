@@ -171,3 +171,37 @@
 .animate-float-gentle {
   animation: floatGentle 5s ease-in-out infinite;
 }
+
+/* ---- Hero: cinematic opening (shutter, focus pull, light leak, scroll exit) ---- */
+@keyframes shutterOpen { 0%, 35% { transform: scaleY(1); } 100% { transform: scaleY(0); } }
+.hero-shutter { animation: shutterOpen 1.6s cubic-bezier(0.7, 0, 0.2, 1) both; }
+
+@keyframes focusPull {
+  from { opacity: 0; filter: blur(14px); transform: translateY(18px) scale(1.04); letter-spacing: 0.12em; }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+.hero-title > span { animation: focusPull 1.4s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.hero-title > span:nth-child(1) { animation-delay: 0.55s; }
+.hero-title > span:nth-child(2) { animation-delay: 0.8s; }
+.hero-title > span:nth-child(3) { animation-delay: 1.1s; }
+
+@keyframes lightLeak {
+  0%, 100% { transform: translate(-10%, -5%) scale(1); opacity: 0.35; }
+  50% { transform: translate(25%, 15%) scale(1.25); opacity: 0.7; }
+}
+.hero-light-leak { animation: lightLeak 16s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-shutter { display: none; }
+  .hero-title > span, .hero-light-leak { animation: none; }
+}
+
+/* Text drifts up and out of focus as the hero scrolls away (browsers with scroll-driven animations only) */
+@keyframes heroScrollOut { to { opacity: 0; transform: translateY(-80px); filter: blur(6px); } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Timeline is the hero section itself: its overflow-hidden would make view() track a box that never scrolls */
+    #hero { view-timeline-name: --hero; }
+    .hero-scroll-out { animation: heroScrollOut linear both; animation-timeline: --hero; animation-range: exit 5% exit 75%; }
+  }
+}
