@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useConfig } from '../config/ConfigContext';
 import confetti from 'canvas-confetti';
 import { ArrowUp, Smile, Wifi, Battery, Signal, RotateCcw, Sparkles } from 'lucide-react';
+import { reveal } from '../reveal';
 
 const TYPING_MS = 900;
 
@@ -216,7 +217,7 @@ export default function PhoneChatSection() {
 
       <div className="max-w-md w-full relative z-10 flex flex-col items-center">
         {/* Heading */}
-        <div className="text-center mb-10">
+        <div ref={reveal()} className="text-center mb-10">
           <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.35em] text-rose-200/70">A late night conversation</span>
           <h2 className="mt-3 font-royal italic font-semibold text-5xl sm:text-6xl lg:text-7xl leading-[0.95]">
             <span className="gold-shimmer-text">Midnight Words</span>
@@ -228,7 +229,7 @@ export default function PhoneChatSection() {
         <div aria-hidden="true" className="absolute top-40 left-1/2 -translate-x-1/2 w-[420px] h-[520px] rounded-full bg-[#e59556]/20 blur-[110px] pointer-events-none" />
 
         {/* iPhone chassis */}
-        <div className="relative w-full max-w-[340px] sm:max-w-[370px] bg-[#0c0c0e] rounded-[52px] p-3 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.95),inset_0_0_0_1px_rgba(255,255,255,0.08)] border-[5px] border-[#2c2b30] ring-1 ring-white/10">
+        <div ref={reveal(200)} className="relative w-full max-w-[340px] sm:max-w-[370px] bg-[#0c0c0e] rounded-[52px] p-3 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.95),inset_0_0_0_1px_rgba(255,255,255,0.08)] border-[5px] border-[#2c2b30] ring-1 ring-white/10">
           {/* Side buttons */}
           <span aria-hidden="true" className="absolute -left-[9px] top-28 w-1 h-10 bg-[#2c2b30] rounded-l" />
           <span aria-hidden="true" className="absolute -left-[9px] top-44 w-1 h-14 bg-[#2c2b30] rounded-l" />
@@ -320,7 +321,7 @@ export default function PhoneChatSection() {
         </div>
 
         {/* Progress + replay */}
-        <div className="mt-6 flex flex-col items-center gap-3">
+        <div ref={reveal(400)} className="mt-6 flex flex-col items-center gap-3">
           <div className="flex gap-1.5" aria-label={`${revealed} of ${script.length} messages revealed`}>
             {script.map((_, i) => (
               <span key={i} className={`h-1.5 rounded-full transition-all duration-500 ${i < revealed ? 'w-6 bg-[#f0a868]' : 'w-1.5 bg-zinc-700'}`} />

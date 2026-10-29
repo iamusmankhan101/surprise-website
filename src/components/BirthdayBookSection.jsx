@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useConfig } from '../config/ConfigContext';
 import confetti from 'canvas-confetti';
 import { ChevronLeft, ChevronRight, Heart, Star, Sparkles, Cake, Play, ZoomIn, X, RotateCcw } from 'lucide-react';
+import { reveal } from '../reveal';
 
 // A 3D flip book. Every leaf has a front (a right-hand page) and a back (the next left-hand page);
 // flipping a leaf rotates it -180deg around the spine. All sizes inside pages use cqw (container
@@ -509,7 +510,7 @@ export default function BirthdayBookSection() {
     <section id="book" className="relative overflow-hidden bg-[#fbf3e3] py-20 sm:py-24 px-3 sm:px-8">
       <div aria-hidden="true" className="absolute inset-0 opacity-50 bg-[radial-gradient(#e8d9bd_1px,transparent_1px)] [background-size:22px_22px]" />
 
-      <div className="relative text-center mb-10 sm:mb-14">
+      <div ref={reveal()} className="relative text-center mb-10 sm:mb-14">
         <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.35em] text-[#6e1f24]/70">Our birthday book</p>
         <h2 className="mt-3 font-royal italic font-semibold text-5xl sm:text-6xl lg:text-7xl leading-[0.95] text-[#6e1f24]">Flip through our story</h2>
         <p className="mt-5 text-sm sm:text-base leading-relaxed text-stone-500">Tap a page, swipe, or use the arrows to turn it.</p>
@@ -517,6 +518,7 @@ export default function BirthdayBookSection() {
 
       {/* The book */}
       <div
+        ref={reveal(200)}
         className="relative mx-auto w-full aspect-[3/2] [perspective:2800px] outline-none"
         style={{ maxWidth: 'min(1040px, 100vh)' }}
         tabIndex={0}
@@ -557,7 +559,7 @@ export default function BirthdayBookSection() {
       </div>
 
       {/* Controls */}
-      <div className="relative mt-10 flex items-center justify-center gap-3 sm:gap-5">
+      <div ref={reveal(400)} className="relative mt-10 flex items-center justify-center gap-3 sm:gap-5">
         <button onClick={() => go(-1)} disabled={flipped === 0} aria-label="Previous page" className="w-11 h-11 rounded-full bg-[#6e1f24] text-[#f6e9e0] flex items-center justify-center shadow-md hover:brightness-110 disabled:opacity-30 transition">
           <ChevronLeft className="w-5 h-5" />
         </button>

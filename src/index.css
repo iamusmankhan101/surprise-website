@@ -205,3 +205,10 @@
     .hero-scroll-out { animation: heroScrollOut linear both; animation-timeline: --hero; animation-range: exit 5% exit 75%; }
   }
 }
+
+/* ---- Scroll-in reveal for each section (see src/reveal.js) ----
+   Uses `translate` (not transform) and a backwards fill, so it never fights an element's own
+   rotate/hover/flip transforms or its opacity transitions once it has played. */
+@keyframes sectionReveal { from { opacity: 0; translate: 0 48px; filter: blur(10px); } }
+[data-reveal="pending"] { opacity: 0; }
+[data-reveal="done"] { animation: sectionReveal 1s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms) backwards; }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useConfig } from '../config/ConfigContext';
 import confetti from 'canvas-confetti';
+import { reveal } from '../reveal';
 
 // Pinned polaroid board. Desktop: two staggered rows, each card absolutely placed in % of a 10:7.9 board.
 // Mobile: the same cards flow into a two-column grid.
@@ -123,7 +124,7 @@ export default function PolaroidGallery() {
       <FairyLights swags={4} sag={30} top={50} count={28} offset={1.1} />
 
       {/* "A person who is ___" masthead */}
-      <header className="relative text-center text-stone-900 max-w-3xl mx-auto mb-10 md:mb-6">
+      <header ref={reveal()} className="relative text-center text-stone-900 max-w-3xl mx-auto mb-10 md:mb-6">
         <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.35em] text-stone-500">{board.heading || 'A person who is'}</p>
         <h2 className="mt-3 font-royal italic font-semibold text-5xl sm:text-6xl lg:text-7xl leading-[0.95]">{name}</h2>
         <p className="mt-5 mx-auto max-w-2xl text-sm sm:text-base leading-relaxed text-stone-600">{lines.join(' · ')}</p>
@@ -136,6 +137,7 @@ export default function PolaroidGallery() {
           return (
             <button
               key={photo.id ?? idx}
+              ref={reveal((idx % 4) * 110)}
               type="button"
               onClick={(e) => open(photo, idx, e)}
               aria-label={`Open note: ${photo.caption || `memory ${idx + 1}`}`}

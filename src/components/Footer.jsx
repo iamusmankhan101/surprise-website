@@ -1,6 +1,7 @@
 import React from 'react';
 import { useConfig } from '../config/ConfigContext';
 import { Heart, Sliders, ArrowUp } from 'lucide-react';
+import { reveal } from '../reveal';
 
 export default function Footer() {
   const { config, isAdmin, setIsStudioOpen } = useConfig();
@@ -11,7 +12,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#121013] text-stone-400 py-12 px-6 border-t border-stone-800 text-xs">
-      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div ref={reveal()} className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
         
         {/* Left: Branding & Recipient tribute */}
         <div className="flex flex-col items-center sm:items-start gap-1">

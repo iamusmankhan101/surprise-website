@@ -3,6 +3,7 @@ import { useConfig } from '../config/ConfigContext';
 import confetti from 'canvas-confetti';
 import { Volume2 } from 'lucide-react';
 import { youtubeId, ytEmbed, ytCommand } from '../youtube';
+import { reveal } from '../reveal';
 
 const DEFAULT_VIDEO = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
 const CURTAIN_MS = 2800;
@@ -257,19 +258,19 @@ export default function CinemaCountdownSection() {
       <div
         className={`relative z-30 flex-1 flex flex-col items-center justify-center text-center px-4 py-10 transition-opacity duration-700 ${opened ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
-        <div className="flex items-center gap-3 text-[#d99b26] mb-3">
+        <div ref={reveal()} className="flex items-center gap-3 text-[#d99b26] mb-3">
           <span className="text-xl">✦</span>
           <span className="w-12 h-px bg-[#d99b26]/50" />
           <span className="text-xl">✦</span>
         </div>
-        <h2 className="font-royal font-bold uppercase tracking-[0.08em] text-5xl sm:text-6xl lg:text-7xl leading-[0.95] text-[#fdf6e2] marquee-glow">
+        <h2 ref={reveal(120)} className="font-royal font-bold uppercase tracking-[0.08em] text-5xl sm:text-6xl lg:text-7xl leading-[0.95] text-[#fdf6e2] marquee-glow">
           {cinema.mainTitle || 'NOW SHOWING'}
         </h2>
-        <p className="mt-5 text-sm sm:text-base leading-relaxed text-[#e9cf9a]">
+        <p ref={reveal(240)} className="mt-5 text-sm sm:text-base leading-relaxed text-[#e9cf9a]">
           {cinema.subtitle || 'a little production, live October 11th'}
         </p>
 
-        <div className="mt-12 flex flex-col items-center gap-6 w-full max-w-md">
+        <div ref={reveal(380)} className="mt-12 flex flex-col items-center gap-6 w-full max-w-md">
           <div className="flex flex-col items-center">
             <FlipCard value={time.days} big />
             <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.25em] text-[#d4af37]/80 mt-2">Days to curtain</span>
@@ -285,6 +286,7 @@ export default function CinemaCountdownSection() {
         </div>
 
         <button
+          ref={reveal(520)}
           onClick={() => confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 }, colors: ['#fcd34d', '#f59e0b', '#dc2626', '#ffffff'] })}
           className="mt-10 px-6 py-2.5 rounded-full border border-[#d4af37]/60 bg-black/50 hover:bg-[#d4af37] hover:text-stone-900 text-[#d4af37] font-semibold text-xs tracking-widest uppercase transition-all duration-300 shadow-lg hover:scale-105 active:scale-95"
         >
